@@ -47,25 +47,6 @@ Visit the deployed application:
 
 ### https://shortifyurl.up.railway.app/
 
----
-
-## 📸 Screenshots
-
-> Replace these with screenshots of your application.
-
-### Home Page
-
-```
-Add screenshot here
-```
-
-### Generated Short Link
-
-```
-Add screenshot here
-```
-
----
 
 ## 🛠 Tech Stack
 
