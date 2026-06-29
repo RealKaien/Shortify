@@ -200,7 +200,7 @@ async function startServer() {
       if (alias) {
         const allLinks = await db.getLinks();
         const conflict = allLinks.find(
-          l => l.shortCode.toLowerCase() === alias.toLowerCase() || 
+          l => (l.shortCode && l.shortCode.toLowerCase() === alias.toLowerCase()) || 
                (l.alias && l.alias.toLowerCase() === alias.toLowerCase())
         );
         if (conflict) {
@@ -247,7 +247,7 @@ async function startServer() {
         const allLinks = await db.getLinks();
         const conflict = allLinks.find(
           l => l.id !== id && (
-            l.shortCode.toLowerCase() === alias.toLowerCase() || 
+            (l.shortCode && l.shortCode.toLowerCase() === alias.toLowerCase()) || 
             (l.alias && l.alias.toLowerCase() === alias.toLowerCase())
           )
         );
