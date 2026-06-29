@@ -6,6 +6,8 @@ import {
   Smartphone, Monitor, Compass, Key 
 } from 'lucide-react';
 import { Link, ClickEvent } from '../types';
+import { toast } from '../lib/toast';
+import { isValidUrl } from '../lib/validation';
 
 interface LinkDetailsProps {
   link: Link;
@@ -84,8 +86,16 @@ export default function LinkDetails({ link, clicks, onBack, onUpdateLink, onDele
 
   const handleSaveEdit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isValidUrl(editLongUrl)) {
+      toast.error('Please enter a valid, well-formed URL with a protocol (e.g., https://example.com). Inputs like "a" or "domain.com" are not allowed.');
+      return;
+    }
+
+    let finalLongUrl = editLongUrl.trim();
+
     onUpdateLink({
-      longUrl: editLongUrl,
+      longUrl: finalLongUrl,
       alias: editAlias ? editAlias.trim() : undefined,
       expiryDate: editExpiryDate || undefined,
       password: isPasswordProtected ? editPassword : '',

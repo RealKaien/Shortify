@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Globe, Link2, ShieldAlert, Key, Calendar, QrCode, Tag, Check, HelpCircle, ArrowRight } from 'lucide-react';
+import { X, Globe, Link2, ShieldAlert, Key, Calendar, QrCode, Tag, ArrowRight, Sparkles } from 'lucide-react';
 import { Link } from '../types';
+import { toast } from '../lib/toast';
+import { isValidUrl } from '../lib/validation';
 
 interface CreateLinkModalProps {
   isOpen: boolean;
@@ -22,10 +24,13 @@ export default function CreateLinkModal({
 }: CreateLinkModalProps) {
   const [longUrl, setLongUrl] = useState('');
   const [alias, setAlias] = useState('');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [password, setPassword] = useState('');
   const [isProtected, setIsProtected] = useState(false);
   const [generateQR, setGenerateQR] = useState(true);
+  const [isSuggesting, setIsSuggesting] = useState(false);
   
   // UTM Builder State
   const [utmSource, setUtmSource] = useState('');
@@ -46,7 +51,6 @@ export default function CreateLinkModal({
       if (utmCampaign) urlObj.searchParams.set('utm_campaign', utmCampaign);
       return urlObj.toString();
     } catch {
-      // Fallback if URL parsing fails
       let appended = url;
       const params = [];
       if (utmSource) params.push(`utm_source=${utmSource}`);
@@ -59,17 +63,62 @@ export default function CreateLinkModal({
     }
   };
 
+  const handleGeminiSuggest = async () => {
+    if (!longUrl) {
+      toast.info("Please enter a destination URL first!");
+      return;
+    }
+
+    setIsSuggesting(true);
+    toast.info("Gemini is analyzing the destination link...");
+
+    try {
+      let finalLongUrl = longUrl.trim();
+      if (!/^https?:\/\//i.test(finalLongUrl)) {
+        finalLongUrl = `https://${finalLongUrl}`;
+      }
+
+      const response = await fetch('/api/gemini/shorten', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ longUrl: finalLongUrl }),
+      });
+
+      if (!response.ok) throw new Error("Gemini suggestions failed");
+      const data = await response.json();
+
+      if (data.aliases && data.aliases.length > 0) {
+        setAlias(data.aliases[0]);
+      }
+      if (data.title) {
+        setTitle(data.title);
+      }
+      if (data.description) {
+        setDescription(data.description);
+      }
+
+      toast.success("Gemini generated smart link suggestions!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to fetch suggestions from Gemini.");
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!longUrl) return;
 
-    // Clean long URL or prepend protocol
-    let finalLongUrl = longUrl.trim();
-    if (!/^https?:\/\//i.test(finalLongUrl)) {
-      finalLongUrl = `https://${finalLongUrl}`;
+    if (!isValidUrl(longUrl)) {
+      toast.error('Please enter a valid, well-formed URL with a protocol (e.g., https://example.com). Inputs like "a" or "domain.com" are not allowed.');
+      return;
     }
 
-    // Apply UTM parameters
+    let finalLongUrl = longUrl.trim();
+
     if (utmSource || utmMedium || utmCampaign) {
       finalLongUrl = getUtmAppendedUrl(finalLongUrl);
     }
@@ -77,6 +126,8 @@ export default function CreateLinkModal({
     onCreateLink({
       longUrl: finalLongUrl,
       alias: alias.trim() || undefined,
+      title: title.trim() || undefined,
+      description: description.trim() || undefined,
       expiryDate: expiryDate || undefined,
       password: isProtected ? password : undefined,
       isProtected: isProtected && !!password,
@@ -85,9 +136,10 @@ export default function CreateLinkModal({
       utmCampaign: utmCampaign || undefined,
     });
 
-    // Reset Form
     setLongUrl('');
     setAlias('');
+    setTitle('');
+    setDescription('');
     setExpiryDate('');
     setPassword('');
     setIsProtected(false);
@@ -172,10 +224,23 @@ export default function CreateLinkModal({
             <form onSubmit={handleSubmit} className="space-y-5 overflow-y-auto pr-2 flex-1 scrollbar-thin">
               {/* Long URL */}
               <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-heading flex items-center gap-1.5">
-                  <Globe className="h-4 w-4 text-primary" />
-                  Destination URL
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold text-heading flex items-center gap-1.5">
+                    <Globe className="h-4 w-4 text-primary" />
+                    Destination URL
+                  </label>
+                  
+                  {/* Gemini Magic Auto-complete Button */}
+                  <button
+                    type="button"
+                    onClick={handleGeminiSuggest}
+                    disabled={!longUrl || isSuggesting}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-[12px] text-[10px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <Sparkles className="h-3 w-3 animate-pulse" />
+                    <span>{isSuggesting ? 'Analyzing...' : 'Gemini Smart Fill'}</span>
+                  </button>
+                </div>
                 <div className="relative">
                   <input
                     type="text"
@@ -196,7 +261,7 @@ export default function CreateLinkModal({
                 </label>
                 <div className="flex items-center">
                   <span className="bg-gray-100 border border-r-0 border-gray-200 px-4 py-3.5 rounded-l-[18px] text-sm text-secondary-text font-mono">
-                    shortify.co/
+                    {window.location.host}/s/
                   </span>
                   <input
                     type="text"
@@ -204,6 +269,30 @@ export default function CreateLinkModal({
                     value={alias}
                     onChange={(e) => setAlias(e.target.value.replace(/[^a-zA-Z0-9-_]/g, ''))}
                     className="w-full px-4 py-3.5 rounded-r-[18px] bg-gray-50 border border-gray-200 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all text-sm outline-none placeholder:text-muted-text text-heading"
+                  />
+                </div>
+              </div>
+
+              {/* Title & Description Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Link Title (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Product Page"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full px-4 py-3 rounded-[16px] bg-gray-50 border border-gray-200 focus:border-primary focus:bg-white transition-all text-xs outline-none text-heading"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Description (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Ads campaign redirect"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full px-4 py-3 rounded-[16px] bg-gray-50 border border-gray-200 focus:border-primary focus:bg-white transition-all text-xs outline-none text-heading"
                   />
                 </div>
               </div>

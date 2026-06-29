@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Shield, Key, AlertTriangle, ArrowRight, Compass, Home, HelpCircle, Lock } from 'lucide-react';
-import { Link, ClickEvent } from '../types';
+import { Shield, Key, AlertTriangle, ArrowRight, Compass, Home, Lock } from 'lucide-react';
+import { Link } from '../types';
 
 interface RedirectionHandlerProps {
-  links: Link[];
   currentPath: string;
-  onLogClick: (linkId: string, geoData?: Partial<ClickEvent>) => void;
+  onLogClick: (linkId: string) => void;
   onGoHome: () => void;
 }
 
-export default function RedirectionHandler({ links, currentPath, onLogClick, onGoHome }: RedirectionHandlerProps) {
+export default function RedirectionHandler({ currentPath, onLogClick, onGoHome }: RedirectionHandlerProps) {
+  const [link, setLink] = useState<Link | null>(null);
+  const [loading, setLoading] = useState(true);
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
@@ -19,8 +20,22 @@ export default function RedirectionHandler({ links, currentPath, onLogClick, onG
   // Parse code from path: e.g. /s/react19 -> react19
   const code = currentPath.replace('/s/', '').split('?')[0];
 
-  // Find corresponding link
-  const link = links.find(l => l.alias === code || l.shortCode === code);
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/links/code/${code}`)
+      .then(res => {
+        if (!res.ok) throw new Error("Link not found");
+        return res.json();
+      })
+      .then(data => {
+        setLink(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLink(null);
+        setLoading(false);
+      });
+  }, [code]);
 
   // Check Expiration Status
   const isExpired = link?.expiryDate ? new Date(link.expiryDate) < new Date() : false;
@@ -70,15 +85,34 @@ export default function RedirectionHandler({ links, currentPath, onLogClick, onG
     }
   };
 
-  const handleFinalRedirect = () => {
+  const handleFinalRedirect = async () => {
     if (!link) return;
     
-    // Log the click event (simulate randomized geolocations/devices for metrics)
+    // Log the click event on the backend
+    try {
+      await fetch(`/api/links/${link.id}/click`, {
+        method: "POST"
+      });
+    } catch (e) {
+      console.error("Failed to log click on server:", e);
+    }
+
     onLogClick(link.id);
 
     // Perform native window redirection
     window.location.replace(link.longUrl);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F4F7FF] flex items-center justify-center p-6 text-center font-sans">
+        <div className="space-y-4">
+          <Compass className="h-10 w-10 animate-spin text-primary mx-auto" />
+          <p className="text-xs text-secondary-text font-medium">Resolving routing destination...</p>
+        </div>
+      </div>
+    );
+  }
 
   // 1. Case: Link Not Found
   if (!link) {

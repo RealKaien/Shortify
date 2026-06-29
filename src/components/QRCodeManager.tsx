@@ -126,10 +126,16 @@ export default function QRCodeManager({ links, onSelectLink }: QRCodeManagerProp
     e.preventDefault();
     if (!customQrData.trim()) return;
 
+    let payload = customQrData.trim();
+    // If it looks like a standard domain name but lacks protocol, prepends https://
+    if (/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/.*)?$/i.test(payload)) {
+      payload = `https://${payload}`;
+    }
+
     const newCustomQr: CustomQR = {
       id: `cqr-${Math.random().toString(36).substring(2, 9)}`,
       name: customQrName.trim() || 'Untitled QR Asset',
-      data: customQrData.trim(),
+      data: payload,
       color: customQrColor,
       createdAt: new Date().toISOString()
     };
@@ -737,7 +743,7 @@ export default function QRCodeManager({ links, onSelectLink }: QRCodeManagerProp
               <div className="md:col-span-5 flex flex-col items-center justify-center space-y-4">
                 <div className="bg-gray-50 p-6 rounded-[28px] border border-gray-100 flex items-center justify-center shadow-inner relative group w-full aspect-square max-w-[280px] md:max-w-none">
                   <img
-                    src={getQRUrl(previewQr.data, modalColor, modalBgColor, modalSize)}
+                    src={getQRUrl(previewQr.data, modalColor, modalBgColor, 280)}
                     alt="Customized QR Preview"
                     className="w-full h-full object-contain rounded-2xl shadow-md bg-white p-3 transition-transform duration-300"
                     referrerPolicy="no-referrer"
