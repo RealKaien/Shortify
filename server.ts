@@ -99,6 +99,7 @@ function getGeoData(ip: string = "", reqHeaders: Record<string, any> = {}) {
 
 async function startServer() {
   const app = express();
+  app.set("trust proxy", true);
   app.use(express.json());
 
   // CORS middleware for safety (if needed)
@@ -112,11 +113,16 @@ async function startServer() {
     next();
   });
 
-  // Extract auth user ID middleware
-  const getUserId = (req: express.Request): string | null => {
+  // Extract auth user ID middleware (supporting standard tokens & live API keys)
+  const getUserId = async (req: express.Request): Promise<string | null> => {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith("Bearer ")) {
-      return authHeader.substring(7);
+      const token = authHeader.substring(7);
+      if (token.startsWith("sh_live_")) {
+        const apiKeyObj = await db.validateApiKey(token);
+        return apiKeyObj ? apiKeyObj.userId : null;
+      }
+      return token;
     }
     return null;
   };
@@ -179,7 +185,7 @@ async function startServer() {
   // Links CRUD
   app.get("/api/links", async (req, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = await getUserId(req);
       const links = await db.getLinks(userId);
       res.json(links);
     } catch (err: any) {
@@ -189,7 +195,7 @@ async function startServer() {
 
   app.post("/api/links", async (req, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = await getUserId(req);
       const { longUrl, alias, title, description, password, isProtected, expiryDate, utmSource, utmMedium, utmCampaign } = req.body;
       
       if (!longUrl) {
@@ -326,7 +332,7 @@ async function startServer() {
   // Analytics Clicks List
   app.get("/api/clicks", async (req, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = await getUserId(req);
       const clicks = await db.getClicks(userId);
       res.json(clicks);
     } catch (err: any) {
@@ -337,7 +343,7 @@ async function startServer() {
   // API Keys Management
   app.get("/api/api-keys", async (req, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = await getUserId(req);
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
@@ -350,7 +356,7 @@ async function startServer() {
 
   app.post("/api/api-keys", async (req, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = await getUserId(req);
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
       }
@@ -378,7 +384,7 @@ async function startServer() {
 
   app.delete("/api/api-keys/:id", async (req, res) => {
     try {
-      const userId = getUserId(req);
+      const userId = await getUserId(req);
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
       }

@@ -378,7 +378,11 @@ export default function App() {
               onLaunchDashboard={() => setIsAuthModalOpen(true)}
               onScrollToSection={handleScrollToSection}
             />
-            <LandingPage onLaunchDashboard={() => setIsAuthModalOpen(true)} />
+            <LandingPage 
+              onLaunchDashboard={() => setIsAuthModalOpen(true)} 
+              token={token}
+              onLinkCreated={(newLink) => setLinks(prev => [newLink, ...prev])}
+            />
           </motion.div>
         ) : (
           /* SaaS Console Panel Mode */

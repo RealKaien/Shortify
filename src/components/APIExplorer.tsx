@@ -23,14 +23,14 @@ export default function APIExplorer({ apiKeys }: APIExplorerProps) {
   const [responseOutput, setResponseOutput] = useState<any>(null);
 
   const snippets = {
-    curl: `curl -X POST "https://api.shortify.co/v1/links" \\
+    curl: `curl -X POST "https://shortifyurl.up.railway.app/api/links" \\
   -H "Authorization: Bearer ${playgroundApiKey}" \\
   -H "Content-Type: application/json" \\
   -d '{
     "longUrl": "${playgroundUrl}",
     "alias": "${playgroundAlias}"${playgroundExpiry ? `, \n    "expiryDate": "${playgroundExpiry}"` : ''}
   }'`,
-    node: `const response = await fetch('https://api.shortify.co/v1/links', {
+    node: `const response = await fetch('https://shortifyurl.up.railway.app/api/links', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer ${playgroundApiKey}',
@@ -57,7 +57,7 @@ payload = {
 }
 
 response = requests.post(
-    'https://api.shortify.co/v1/links', 
+    'https://shortifyurl.up.railway.app/api/links', 
     headers=headers, 
     json=payload
 )
@@ -88,7 +88,7 @@ print(response.json())`
         data: {
           id: `link_${Math.random().toString(36).substring(2, 10)}`,
           shortCode: generatedCode,
-          shortUrl: `https://shrt.dev/${generatedCode}`,
+          shortUrl: `https://shortifyurl.up.railway.app/s/${generatedCode}`,
           longUrl: playgroundUrl,
           alias: playgroundAlias || null,
           isProtected: false,

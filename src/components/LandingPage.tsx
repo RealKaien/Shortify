@@ -2,38 +2,96 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Link2, ArrowRight, Sparkles, Check, Globe, Shield, BarChart2, 
-  QrCode, Zap, ChevronDown, MessageSquare, Tag, Key, Lock, Copy
+  QrCode, Zap, ChevronDown, MessageSquare, Tag, Key, Lock, Copy,
+  Clock, Pin, ArrowUpRight
 } from 'lucide-react';
 import { faqItems } from '../data/mockData';
 import { toast } from '../lib/toast';
+import { Link } from '../types';
 
 interface LandingPageProps {
   onLaunchDashboard: () => void;
+  token: string | null;
+  onLinkCreated?: (link: Link) => void;
 }
 
-export default function LandingPage({ onLaunchDashboard }: LandingPageProps) {
+export default function LandingPage({ onLaunchDashboard, token, onLinkCreated }: LandingPageProps) {
   // Hero URL Shorten State
   const [heroInput, setHeroInput] = useState('');
   const [shortenedResult, setShortenedResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [landingShortenCount, setLandingShortenCount] = useState<number>(() => {
+    const saved = localStorage.getItem('shortify_landing_shorten_count');
+    return saved ? parseInt(saved, 10) : 0;
+  });
 
   // FAQ Expanded State
   const [expandedFaqIdx, setExpandedFaqIdx] = useState<number | null>(null);
 
-  const handleHeroShorten = (e: React.FormEvent) => {
+  const handleHeroShorten = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!heroInput.trim()) return;
+
+    if (landingShortenCount >= 1) {
+      toast.info('You have reached the free limit of 1 short link without an account. Please log in or start your trial to continue.');
+      onLaunchDashboard(); // Trigger AuthModal
+      return;
+    }
+
+    // Strict URL validation regex
+    const urlRegex = /^(https?:\/\/)(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{2,10}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/i;
+    let finalUrl = heroInput.trim();
+    if (!urlRegex.test(finalUrl)) {
+      if (!/^https?:\/\//i.test(finalUrl)) {
+        finalUrl = `https://${finalUrl}`;
+      }
+      if (!urlRegex.test(finalUrl)) {
+        toast.error('Please enter a valid, well-formed URL with a protocol (e.g., https://example.com). Inputs like "a" or "domain.com" are not allowed.');
+        return;
+      }
+    }
 
     setLoading(true);
     setShortenedResult(null);
 
-    // Simulate link generation delay
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/links', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          longUrl: finalUrl,
+          title: `Landing Page Link`,
+          description: 'Created anonymously from the landing page.'
+        })
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to create short link');
+      }
+
+      const createdLink = await response.json();
+      const shortUrl = `${window.location.origin}/s/${createdLink.shortCode}`;
+      setShortenedResult(shortUrl);
+      
+      const newCount = landingShortenCount + 1;
+      setLandingShortenCount(newCount);
+      localStorage.setItem('shortify_landing_shorten_count', newCount.toString());
+
+      if (onLinkCreated) {
+        onLinkCreated(createdLink);
+      }
+
+      toast.success('Your free short link was created successfully!');
+    } catch (err: any) {
+      toast.error(err.message || 'An error occurred.');
+    } finally {
       setLoading(false);
-      const randomCode = Math.random().toString(36).substring(2, 7);
-      setShortenedResult(`${window.location.origin}/s/${randomCode}`);
-    }, 1000);
+    }
   };
 
   const handleCopy = () => {
@@ -45,13 +103,13 @@ export default function LandingPage({ onLaunchDashboard }: LandingPageProps) {
   };
 
   return (
-    <div id="saas-landing-container" className="relative min-h-screen bg-[#F4F7FF] font-sans text-heading overflow-x-hidden selection:bg-blue-100">
+    <div id="saas-landing-container" className="relative min-h-screen bg-gradient-to-tr from-[#FAF8FF] via-[#F3E8FF] to-[#EEF2FF] font-sans text-heading overflow-x-hidden selection:bg-primary/20">
       
-      {/* Background Floating Blurred Gradient Spheres */}
-      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-[#FFF7F4] rounded-full blur-[120px] opacity-60 pointer-events-none -z-10" />
-      <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-[#EEF3FF] rounded-full blur-[100px] opacity-80 pointer-events-none -z-10" />
-      <div className="absolute top-[1200px] left-1/3 w-[600px] h-[600px] bg-indigo-300/10 rounded-full blur-[140px] pointer-events-none -z-10" />
-
+      {/* Background Floating Blurred Gradient Spheres (Aurora fluid design matching the video) */}
+      <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-primary/10 rounded-full blur-[140px] opacity-70 pointer-events-none -z-10 animate-pulse duration-10000" />
+      <div className="absolute bottom-[-15%] left-[-10%] w-[500px] h-[500px] bg-[#ddd6fe] rounded-full blur-[120px] opacity-80 pointer-events-none -z-10" />
+      <div className="absolute top-[800px] left-1/4 w-[700px] h-[700px] bg-primary/5 rounded-full blur-[160px] pointer-events-none -z-10" />
+ 
       {/* 1. HERO SECTION */}
       <section id="hero" className="relative pt-40 pb-20 px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -77,10 +135,10 @@ export default function LandingPage({ onLaunchDashboard }: LandingPageProps) {
                 hidden: { opacity: 0, y: 15 },
                 show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120, damping: 14 } }
               }}
-              className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full w-fit mb-6"
+              className="inline-flex items-center gap-2 px-3.5 py-1 bg-primary/10 border border-primary/20 rounded-full w-fit mb-6"
             >
-              <span className="w-2 h-2 bg-[#2563EB] rounded-full animate-pulse"></span>
-              <span className="text-[12px] font-bold text-[#2563EB] uppercase tracking-wider font-sans">v2.0 is now live</span>
+              <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+              <span className="text-[11px] font-extrabold text-primary uppercase tracking-widest font-sans">v2.0 is now live</span>
             </motion.div>
             
             <motion.h1 
@@ -88,10 +146,10 @@ export default function LandingPage({ onLaunchDashboard }: LandingPageProps) {
                 hidden: { opacity: 0, y: 25 },
                 show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 12 } }
               }}
-              className="text-[44px] sm:text-[64px] font-bold leading-[1.05] tracking-tight mb-6 font-display text-[#111827]"
+              className="text-[44px] sm:text-[64px] font-black leading-[1.05] tracking-tight mb-6 font-display text-heading"
             >
               Shorten Links.<br/>
-              <span className="text-[#2563EB]">Share Anywhere.</span>
+              <span className="text-primary bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">Share Anywhere.</span>
             </motion.h1>
             
             <motion.p 
@@ -99,23 +157,23 @@ export default function LandingPage({ onLaunchDashboard }: LandingPageProps) {
                 hidden: { opacity: 0, y: 20 },
                 show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 15 } }
               }}
-              className="text-[18px] sm:text-[20px] text-[#4B5563] leading-relaxed mb-8 pr-4"
+              className="text-[17px] sm:text-[19px] text-secondary-text leading-relaxed mb-8 pr-4"
             >
-              The premium URL shortener for creators and teams. Track your audience with real-time analytics.
+              The premium URL shortener for creators and teams. Track your audience with real-time analytics and stunning visual report metrics.
             </motion.p>
-
+ 
             {/* URL Input Area matching Design HTML precisely */}
             <motion.div 
               variants={{
                 hidden: { opacity: 0, scale: 0.95 },
                 show: { opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 110, damping: 13 } }
               }}
-              whileHover={{ scale: 1.01, boxShadow: "0 20px 40px rgba(37,99,235,0.06)" }}
-              className="p-2 bg-white rounded-[24px] shadow-xl shadow-blue-500/5 border border-white flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
+              whileHover={{ scale: 1.01, boxShadow: "0 24px 48px rgba(27,115,232,0.08)" }}
+              className="p-2 bg-white/80 backdrop-blur-md rounded-[28px] shadow-xl border border-white flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
             >
               <form onSubmit={handleHeroShorten} className="w-full flex items-center gap-2">
-                <div className="pl-3 text-[#9CA3AF] shrink-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <div className="pl-3 text-muted-text shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                 </div>
                 <input 
                   type="text" 
@@ -123,17 +181,17 @@ export default function LandingPage({ onLaunchDashboard }: LandingPageProps) {
                   placeholder="Paste your long URL here..." 
                   value={heroInput}
                   onChange={(e) => setHeroInput(e.target.value)}
-                  className="flex-1 bg-transparent border-none outline-none text-[15px] sm:text-[16px] text-[#111827] placeholder:text-[#9CA3AF] min-w-0" 
+                  className="flex-1 bg-transparent border-none outline-none text-[15px] sm:text-[16px] text-heading placeholder:text-muted-text min-w-0" 
                 />
                 <button 
                   type="submit" 
-                  className="px-6 py-3.5 sm:px-8 bg-[#2563EB] hover:bg-[#1D4ED8] hover:scale-[1.02] active:scale-[0.98] text-white font-bold rounded-[18px] transition-all cursor-pointer whitespace-nowrap text-xs sm:text-sm shadow-md shadow-blue-500/10 font-sans"
+                  className="px-6 py-3.5 sm:px-8 bg-primary hover:bg-primary-hover hover:scale-[1.02] active:scale-[0.98] text-white font-bold rounded-[20px] transition-all cursor-pointer whitespace-nowrap text-xs sm:text-sm shadow-md shadow-primary/20 font-sans"
                 >
                   Shorten Now
                 </button>
               </form>
             </motion.div>
-
+ 
             {/* Interactive Live Generator Result Block */}
             <AnimatePresence>
               {loading && (
@@ -229,100 +287,169 @@ export default function LandingPage({ onLaunchDashboard }: LandingPageProps) {
             </motion.div>
           </motion.div>
 
-          {/* Right Hero Section - Mockup Dashboard from Design HTML */}
+          {/* Right Hero Section - High Fidelity ChronoTask Mockups */}
           <motion.div 
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ type: 'spring', stiffness: 60, damping: 15, delay: 0.3 }}
-            className="lg:col-span-7 flex items-center justify-end relative"
+            className="lg:col-span-7 flex items-center justify-center lg:justify-end relative min-h-[500px] sm:min-h-[580px] w-full"
           >
-            
-            {/* Main Mockup Card */}
+            {/* Background grid dots matching the mockup design pattern */}
+            <div className="absolute inset-0 bg-grid-dots opacity-75 rounded-[40px] -z-10" />
+
+            {/* Central Main Dashboard Widget */}
             <motion.div 
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              className="w-full max-w-[600px] bg-white rounded-[28px] shadow-2xl shadow-blue-900/10 border border-white overflow-hidden flex flex-col font-sans"
+              className="w-full max-w-[420px] bg-white rounded-[32px] shadow-2xl shadow-blue-900/5 border border-slate-100 overflow-hidden flex flex-col font-sans relative z-10"
             >
-              <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
-                <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
+              <div className="px-5 py-4 border-b border-slate-50 flex items-center justify-between bg-slate-50/20">
+                {/* Logo with 4 dots inspired by ChronoTask */}
+                <div className="flex items-center gap-1.5">
+                  <div className="grid grid-cols-2 gap-1 w-3.5 h-3.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase text-slate-800 tracking-wider">Shortify</span>
                 </div>
-                <div className="text-[11px] font-bold text-[#9CA3AF] tracking-widest uppercase font-display">DASHBOARD PREVIEW</div>
-                <div className="w-12"></div>
+                <div className="text-[9px] font-bold text-muted-text bg-slate-100 px-2 py-0.5 rounded-full uppercase">Workspace Preview</div>
               </div>
 
-              <div className="p-6 sm:p-8">
-                <div className="grid grid-cols-3 gap-3 sm:gap-6 mb-8">
-                  <div className="p-3 sm:p-4 rounded-[20px] bg-blue-50 border border-blue-100">
-                    <div className="text-[10px] sm:text-[12px] font-bold text-[#2563EB] uppercase mb-1">Total Clicks</div>
-                    <div className="text-[18px] sm:text-[24px] font-bold text-[#111827]">42,891</div>
+              <div className="p-6">
+                {/* Simulated Good morning header */}
+                <div className="text-left mb-6">
+                  <span className="text-[9px] uppercase font-black tracking-widest text-primary font-display block mb-1">Redirect Cloud</span>
+                  <h3 className="text-lg font-black tracking-tight text-heading">Good morning, Amanda</h3>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="p-4 rounded-2xl bg-blue-50/40 border border-blue-100/50 text-left">
+                    <div className="text-[9px] font-extrabold text-primary uppercase mb-1">Total Redirects</div>
+                    <div className="text-xl font-black text-heading">42,891</div>
                   </div>
-                  <div className="p-3 sm:p-4 rounded-[20px] bg-green-50 border border-green-100">
-                    <div className="text-[10px] sm:text-[12px] font-bold text-emerald-600 uppercase mb-1">Avg. CTR</div>
-                    <div className="text-[18px] sm:text-[24px] font-bold text-[#111827]">12.4%</div>
-                  </div>
-                  <div className="p-3 sm:p-4 rounded-[20px] bg-purple-50 border border-purple-100">
-                    <div className="text-[10px] sm:text-[12px] font-bold text-purple-600 uppercase mb-1">Active Links</div>
-                    <div className="text-[18px] sm:text-[24px] font-bold text-[#111827]">156</div>
+                  <div className="p-4 rounded-2xl bg-emerald-50/40 border border-emerald-100/50 text-left">
+                    <div className="text-[9px] font-extrabold text-emerald-600 uppercase mb-1">Active Links</div>
+                    <div className="text-xl font-black text-heading">156</div>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="text-[14px] font-bold text-[#111827]">Recent Performance</div>
-                  
-                  {/* Mock Chart Area */}
-                  <div className="h-32 w-full flex items-end gap-2 bg-gray-50/50 p-4 rounded-[20px]">
-                    <div className="flex-1 bg-blue-100 rounded-t-lg h-[40%]"></div>
-                    <div className="flex-1 bg-blue-200 rounded-t-lg h-[60%]"></div>
-                    <div className="flex-1 bg-blue-300 rounded-t-lg h-[80%]"></div>
-                    <div className="flex-1 bg-[#2563EB] rounded-t-lg h-[100%]"></div>
-                    <div className="flex-1 bg-blue-300 rounded-t-lg h-[70%]"></div>
-                    <div className="flex-1 bg-blue-200 rounded-t-lg h-[50%]"></div>
-                    <div className="flex-1 bg-blue-100 rounded-t-lg h-[30%]"></div>
-                  </div>
+                {/* Graph mockup */}
+                <div className="h-28 w-full flex items-end gap-2 bg-slate-50/30 p-3 rounded-2xl border border-slate-100/60 mb-6">
+                  <div className="flex-1 bg-blue-100 rounded-t-lg h-[40%]" />
+                  <div className="flex-1 bg-blue-200 rounded-t-lg h-[60%]" />
+                  <div className="flex-1 bg-blue-300 rounded-t-lg h-[80%]" />
+                  <div className="flex-1 bg-primary rounded-t-lg h-[100%]" />
+                  <div className="flex-1 bg-blue-300 rounded-t-lg h-[70%]" />
+                  <div className="flex-1 bg-blue-200 rounded-t-lg h-[50%]" />
+                  <div className="flex-1 bg-blue-100 rounded-t-lg h-[30%]" />
+                </div>
 
-                  {/* Recent Links Table */}
-                  <div className="mt-8 overflow-hidden">
-                     <table className="w-full text-left">
-                       <thead className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[#9CA3AF] border-b border-gray-100">
-                         <tr>
-                           <th className="pb-2 font-bold">Original Link</th>
-                           <th className="pb-2 font-bold">Shortened</th>
-                           <th className="pb-2 font-bold text-right">Clicks</th>
-                         </tr>
-                       </thead>
-                       <tbody className="text-[12px] sm:text-[13px]">
-                         <tr className="border-b border-gray-50">
-                           <td className="py-3 text-[#4B5563] truncate max-w-[120px] sm:max-w-[200px]">stripe.com/billing/portal/auth</td>
-                           <td className="py-3 font-semibold text-[#2563EB]">shorti.fy/stripe-pay</td>
-                           <td className="py-3 font-bold text-[#111827] text-right">2,410</td>
-                         </tr>
-                         <tr className="border-b border-gray-50">
-                           <td className="py-3 text-[#4B5563] truncate max-w-[120px] sm:max-w-[200px]">linear.app/feature/project-board</td>
-                           <td className="py-3 font-semibold text-[#2563EB]">shorti.fy/roadmap</td>
-                           <td className="py-3 font-bold text-[#111827] text-right">1,822</td>
-                         </tr>
-                       </tbody>
-                     </table>
+                {/* Recent Items */}
+                <div className="space-y-3 text-left">
+                  <span className="text-[10px] uppercase font-black tracking-widest text-muted-text">Live Redirect Index</span>
+                  <div className="flex items-center justify-between text-[11px] font-semibold border-b border-slate-50 pb-2.5">
+                    <span className="text-secondary-text truncate max-w-[150px]">stripe.com/billing/portal/auth</span>
+                    <span className="font-extrabold text-primary">/stripe-pay</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] font-semibold">
+                    <span className="text-secondary-text truncate max-w-[150px]">linear.app/feature/project-board</span>
+                    <span className="font-extrabold text-primary">/roadmap</span>
                   </div>
                 </div>
               </div>
             </motion.div>
 
-            {/* Overlay Floating Badge */}
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.8, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ type: 'spring', stiffness: 80, damping: 12, delay: 0.6 }}
-              className="absolute -bottom-4 -left-12 p-5 bg-white rounded-[24px] shadow-xl border border-white flex items-center gap-3 z-10 hidden xl:flex"
+            {/* FLOATING WIDGET 1: Yellow Sticky Note (Top Left) */}
+            <motion.div
+              whileHover={{ y: -6, rotate: -1, scale: 1.02 }}
+              className="absolute -top-12 -left-4 xl:-left-12 w-52 bg-[#FEF9C3] rounded-[24px] p-4 shadow-xl border border-yellow-200/60 z-20 text-left font-sans text-heading rotate-[-4deg] hidden sm:block"
             >
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 shadow-inner">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg>
+              <div className="absolute top-2 right-4 text-red-500">
+                <Pin className="h-4.5 w-4.5 fill-red-500 stroke-[1.5]" />
               </div>
-              <div className="text-left">
-                <div className="text-[10px] font-bold text-[#9CA3AF] uppercase">Growth</div>
-                <div className="text-[16px] font-bold text-[#111827]">+28% <span className="text-[12px] font-medium text-[#9CA3AF] ml-0.5">this week</span></div>
+              <p className="text-[11px] font-bold text-amber-900 leading-relaxed font-sans pr-4">
+                Take notes to keep track of crucial details, and accomplish more redirects with ease.
+              </p>
+              <div className="mt-3.5 space-y-1 text-[10px] font-bold text-amber-800">
+                <div className="flex items-center gap-1.5">
+                  <Check className="h-3.5 w-3.5 stroke-[2.5]" /> Set secure codes
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Check className="h-3.5 w-3.5 stroke-[2.5]" /> Setup domain fallbacks
+                </div>
+              </div>
+            </motion.div>
+
+            {/* FLOATING WIDGET 2: Reminders Widget & Analog Clock (Top Right) */}
+            <motion.div
+              whileHover={{ y: -6, rotate: 1, scale: 1.02 }}
+              className="absolute -top-10 -right-4 xl:-right-12 w-52 bg-white rounded-[24px] p-4 shadow-xl border border-slate-100 z-20 text-left font-sans text-heading rotate-[3deg] hidden md:block"
+            >
+              <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-50">
+                <span className="text-[9px] uppercase font-black tracking-wider text-muted-text">Reminders</span>
+                <span className="text-[9px] font-extrabold text-primary bg-primary/10 px-2 py-0.5 rounded-full">Meetings</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-primary relative shrink-0">
+                  <Clock className="h-4 w-4" />
+                  <span className="absolute w-1.5 h-1.5 bg-emerald-500 rounded-full top-0 right-0 animate-pulse" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-[11px] font-extrabold truncate text-heading">Today's Meeting</h4>
+                  <span className="text-[9px] text-muted-text block truncate">Call with marketing team</span>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center gap-1.5 bg-primary/5 text-primary text-[9px] font-bold px-2 py-1 rounded-lg w-fit">
+                <Clock className="h-3 w-3" />
+                13:00 - 13:45
+              </div>
+            </motion.div>
+
+            {/* FLOATING WIDGET 3: Today's Tasks Progress (Bottom Left) */}
+            <motion.div
+              whileHover={{ y: -4, scale: 1.02 }}
+              className="absolute -bottom-10 -left-6 xl:-left-16 w-56 bg-white rounded-[24px] p-4 shadow-xl border border-slate-100 z-20 text-left hidden xl:block"
+            >
+              <span className="text-[9px] uppercase font-black tracking-wider text-muted-text block mb-3.5">Today's metrics</span>
+              <div className="space-y-3">
+                <div>
+                  <div className="flex items-center justify-between text-[10px] font-extrabold mb-1">
+                    <span className="text-heading">Campaign redirects</span>
+                    <span className="text-primary">60%</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary rounded-full" style={{ width: '60%' }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between text-[10px] font-extrabold mb-1">
+                    <span className="text-heading">Design PPT #4</span>
+                    <span className="text-emerald-600">112%</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }} />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* FLOATING WIDGET 4: Integrations (Bottom Right) */}
+            <motion.div
+              whileHover={{ y: -4, rotate: -1, scale: 1.02 }}
+              className="absolute -bottom-10 -right-6 xl:-right-12 w-48 bg-white rounded-[24px] p-4 shadow-xl border border-slate-100 z-20 text-left rotate-[-2deg] hidden sm:block"
+            >
+              <span className="text-[9px] uppercase font-black tracking-wider text-muted-text block mb-2.5">100+ Integrations</span>
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-red-500 font-extrabold font-display text-[12px] shadow-sm">
+                  M
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500 font-extrabold font-display text-[12px] shadow-sm">
+                  S
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-primary font-extrabold font-display text-[12px] shadow-sm">
+                  31
+                </div>
               </div>
             </motion.div>
           </motion.div>
