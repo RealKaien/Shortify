@@ -45,29 +45,7 @@ Transform long URLs into short, clean, and shareable links with an elegant user 
 - ⚡ Fast and lightweight
 - 🔒 Secure and reliable
 
----
 
-## 🖥️ Live Demo
-
-**Website**
-
-https://shortifyurl.up.railway.app
-
----
-
-## 📸 Screenshots
-
-> Add screenshots here.
-
-```
-/screenshots
-│── home.png
-│── dashboard.png
-│── analytics.png
-│── qr-code.png
-```
-
----
 
 # Tech Stack
 
