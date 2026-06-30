@@ -18,44 +18,67 @@ Transform long URLs into short, clean, and shareable links with an elegant user 
 </div>
 
 ---
+# Shortify
 
-## 📖 About
+<p align="center">
+  <strong>A modern, fast, and secure URL shortener with analytics, QR code generation, and custom short links.</strong>
+</p>
 
-**Shortify** is a modern URL shortening application built to provide a fast, simple, and intuitive way to convert long URLs into compact, shareable links.
-
-Designed with a clean interface and responsive layout, Shortify works seamlessly across desktop, tablet, and mobile devices. Whether you're sharing links on social media, in emails, or with friends, Shortify makes the process quick and effortless.
+<p align="center">
+  Create short URLs, track engagement, generate QR codes, and manage all your links from a clean, responsive dashboard.
+</p>
 
 ---
 
 ## ✨ Features
 
 - 🔗 Instant URL shortening
-- ⚡ Fast URL redirection
+- ✏️ Custom short aliases
+- 📊 Link analytics and click tracking
+- 🌍 Country and device insights
+- 📱 QR code generation
 - 📋 One-click copy to clipboard
-- 🎨 Modern responsive interface
-- 🌙 Beautiful dark theme
-- 🔒 URL validation
-- 📱 Mobile-friendly design
-- 🚀 High-performance frontend
-- 💻 Clean and intuitive user experience
+- 🔍 Search and filter links
+- 🗑️ Delete unwanted links
+- 📈 Dashboard with usage statistics
+- 📱 Fully responsive design
+- ⚡ Fast and lightweight
+- 🔒 Secure and reliable
 
 ---
 
-## 🌐 Live Demo
+## 🖥️ Live Demo
 
-Visit the deployed application:
+**Website**
 
-### https://shortifyurl.up.railway.app/
+https://shortifyurl.up.railway.app
 
+---
 
-## 🛠 Tech Stack
+## 📸 Screenshots
+
+> Add screenshots here.
+
+```
+/screenshots
+│── home.png
+│── dashboard.png
+│── analytics.png
+│── qr-code.png
+```
+
+---
+
+# Tech Stack
 
 ### Frontend
 
+- Next.js
 - React
 - TypeScript
-- Vite
 - Tailwind CSS
+- shadcn/ui
+- Framer Motion
 
 ### Backend
 
@@ -64,7 +87,7 @@ Visit the deployed application:
 
 ### Database
 
-- Supabase
+- PostgreSQL
 
 ### Deployment
 
@@ -72,191 +95,197 @@ Visit the deployed application:
 
 ---
 
-## 📂 Project Structure
+# Project Structure
 
 ```text
-Shortify/
+shortify/
 │
+├── app/
+├── components/
+├── hooks/
+├── lib/
+├── services/
+├── utils/
 ├── public/
-│
-├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── hooks/
-│   ├── pages/
-│   ├── services/
-│   ├── utils/
-│   ├── App.tsx
-│   └── main.tsx
-│
-├── server/
-│
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-└── README.md
+├── styles/
+├── prisma/
+├── middleware/
+└── package.json
 ```
 
 ---
 
-## 🚀 Getting Started
+# Installation
 
-### Prerequisites
-
-- Node.js 18+
-- npm
-
----
-
-### Clone the repository
+Clone the repository.
 
 ```bash
 git clone https://github.com/RealKaien/Shortify.git
 ```
 
----
-
-### Navigate to the project
+Go to the project directory.
 
 ```bash
 cd Shortify
 ```
 
----
-
-### Install dependencies
+Install dependencies.
 
 ```bash
 npm install
 ```
 
----
-
-### Configure Environment Variables
-
-Create a `.env` file in the project root.
+Create a `.env` file.
 
 ```env
-VITE_API_URL=YOUR_BACKEND_URL
+DATABASE_URL=
 
-SUPABASE_URL=YOUR_SUPABASE_URL
+NEXTAUTH_SECRET=
 
-SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+NEXTAUTH_URL=http://localhost:3000
+
+BASE_URL=http://localhost:3000
 ```
 
----
-
-### Run the project
+Run the development server.
 
 ```bash
 npm run dev
 ```
 
-The application will start at
+Open:
 
 ```
-http://localhost:5173
+http://localhost:3000
 ```
 
 ---
 
-## 📦 Build for Production
+# Build
 
 ```bash
 npm run build
 ```
 
-Preview production build
+Start production.
 
 ```bash
-npm run preview
+npm start
 ```
 
 ---
 
-## 📁 Environment Variables
+# Usage
 
-| Variable | Description |
-|----------|-------------|
-| `VITE_API_URL` | Backend API URL |
-| `SUPABASE_URL` | Supabase Project URL |
-| `SUPABASE_ANON_KEY` | Supabase Public API Key |
-
----
-
-## 🎯 Roadmap
-
-Planned features include:
-
-- 👤 User authentication
-- 📊 Link analytics
-- 🏷 Custom short URLs
-- 📱 QR code generation
-- 🔑 Password-protected links
-- ⏰ Expiring links
-- 📂 Link management dashboard
-- 🌍 Custom domains
-- 📈 Click tracking
-- 📤 Bulk URL shortening
+1. Paste a long URL.
+2. Click **Shorten**.
+3. Copy the generated short link.
+4. Share it anywhere.
+5. Monitor analytics from the dashboard.
 
 ---
 
-## 🤝 Contributing
+# Analytics
 
-Contributions are always welcome!
+Each shortened URL provides useful insights including:
+
+- Total Clicks
+- Unique Visitors
+- Countries
+- Devices
+- Browsers
+- Operating Systems
+- Referrers
+- Click History
+
+---
+
+# QR Codes
+
+Generate a QR code for every shortened URL.
+
+- Instant generation
+- Easy sharing
+- Download support
+- Mobile-friendly
+
+---
+
+# Security
+
+- Input validation
+- Secure URL generation
+- Database-backed storage
+- Error handling
+- Responsive and accessible interface
+
+---
+
+# Roadmap
+
+- [ ] Custom domains
+- [ ] Password-protected links
+- [ ] Link expiration
+- [ ] Team workspaces
+- [ ] API access
+- [ ] Bulk URL shortening
+- [ ] CSV import/export
+- [ ] Advanced analytics
+- [ ] Link tags and folders
+- [ ] Dark mode
+
+---
+
+# Performance
+
+- Fast page loads
+- Optimized assets
+- Responsive UI
+- Clean component architecture
+- Production-ready deployment
+
+---
+
+# Contributing
+
+Contributions are welcome.
 
 1. Fork the repository.
-
-2. Create a new feature branch.
+2. Create a feature branch.
 
 ```bash
-git checkout -b feature/awesome-feature
+git checkout -b feature/new-feature
 ```
 
 3. Commit your changes.
 
 ```bash
-git commit -m "Add awesome feature"
+git commit -m "Add new feature"
 ```
 
-4. Push to GitHub.
+4. Push to your branch.
 
 ```bash
-git push origin feature/awesome-feature
+git push origin feature/new-feature
 ```
 
 5. Open a Pull Request.
 
 ---
 
-## 🐛 Reporting Issues
+# License
 
-If you encounter any bugs or have suggestions for improvements, please open an issue on GitHub.
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License**.
-
-Feel free to use, modify, and distribute it in accordance with the license.
+This project is licensed under the MIT License.
 
 ---
 
-## ⭐ Show Your Support
+# Author
 
-If you found this project useful, consider giving it a ⭐ on GitHub.
-
-It helps others discover the project and supports future development.
+Developed by **RealKaien**.
 
 ---
 
-<div align="center">
+<p align="center">
+Made with ❤️ to simplify link sharing.
+</p>
 
-**Built with ❤️ by RealKaien**
-
-### 🌐 Live Website
-
-https://shortifyurl.up.railway.app/
-
-</div>
