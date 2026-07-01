@@ -177,7 +177,7 @@ export default function AnalyticsView({ links, clicks }: AnalyticsViewProps) {
   return (
     <div id="analytics-view-panel" className="space-y-8">
       {/* Filters Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-[24px] border border-[rgba(255,255,255,0.65)] shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/40 backdrop-blur-md p-5 rounded-[24px] border border-white/50 shadow-[0_4px_24px_rgba(0,0,0,0.01)]">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-primary/10 text-primary rounded-[14px]">
             <BarChart2 className="h-5 w-5" />
@@ -229,7 +229,7 @@ export default function AnalyticsView({ links, clicks }: AnalyticsViewProps) {
       {/* Grid: Main Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Line Chart Card (Clicks Flow) */}
-        <div className="lg:col-span-2 bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] relative overflow-hidden flex flex-col justify-between">
+        <div className="lg:col-span-2 bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.01)] relative overflow-hidden flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
             <div>
               <span className="text-xs font-bold text-primary uppercase tracking-wider">Conversion Engine</span>
@@ -335,7 +335,7 @@ export default function AnalyticsView({ links, clicks }: AnalyticsViewProps) {
         </div>
 
         {/* Donut Chart (Device Type) */}
-        <div className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between">
+        <div className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.01)] flex flex-col justify-between">
           <div>
             <span className="text-xs font-bold text-primary uppercase tracking-wider">Device Profiles</span>
             <h3 className="text-lg font-bold text-heading font-display mt-0.5">Clicks by Device</h3>
@@ -409,7 +409,7 @@ export default function AnalyticsView({ links, clicks }: AnalyticsViewProps) {
       {/* Grid: Referrers & Geographic Distribution */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Country Bar Chart Panel */}
-        <div className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-5">
+        <div className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.01)] space-y-5">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs font-bold text-primary uppercase tracking-wider">Demographics</span>
@@ -458,7 +458,7 @@ export default function AnalyticsView({ links, clicks }: AnalyticsViewProps) {
         </div>
 
         {/* Top Referrers Panel */}
-        <div className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-5">
+        <div className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.01)] space-y-5">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs font-bold text-primary uppercase tracking-wider">Acquisition Channels</span>
@@ -507,7 +507,7 @@ export default function AnalyticsView({ links, clicks }: AnalyticsViewProps) {
       {/* Grid: Operating Systems, Browsers & Cities */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Top Operating Systems Card */}
-        <div className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+        <div className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.01)] space-y-4">
           <div className="flex items-center justify-between border-b border-gray-100 pb-3">
             <h4 className="text-sm font-bold text-heading font-display">Top OS</h4>
             <Smartphone className="h-4 w-4 text-primary" />
@@ -523,7 +523,7 @@ export default function AnalyticsView({ links, clicks }: AnalyticsViewProps) {
         </div>
 
         {/* Top Browsers Card */}
-        <div className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+        <div className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.01)] space-y-4">
           <div className="flex items-center justify-between border-b border-gray-100 pb-3">
             <h4 className="text-sm font-bold text-heading font-display">Top Browsers</h4>
             <Monitor className="h-4 w-4 text-primary" />
@@ -539,7 +539,7 @@ export default function AnalyticsView({ links, clicks }: AnalyticsViewProps) {
         </div>
 
         {/* Top Cities Card */}
-        <div className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+        <div className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.01)] space-y-4">
           <div className="flex items-center justify-between border-b border-gray-100 pb-3">
             <h4 className="text-sm font-bold text-heading font-display">Top Cities</h4>
             <Globe className="h-4 w-4 text-primary" />

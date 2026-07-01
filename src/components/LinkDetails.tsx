@@ -115,7 +115,7 @@ export default function LinkDetails({ link, clicks, onBack, onUpdateLink, onDele
       <div className="flex items-center justify-between">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-sm font-semibold text-secondary-text hover:text-heading transition-colors cursor-pointer bg-white px-4 py-2.5 rounded-[16px] border border-[rgba(255,255,255,0.65)] shadow-[0_2px_12px_rgba(0,0,0,0.01)]"
+          className="flex items-center gap-2 text-sm font-semibold text-secondary-text hover:text-heading transition-colors cursor-pointer bg-white/40 backdrop-blur-md px-4 py-2.5 rounded-[16px] border border-white/50 shadow-[0_2px_12px_rgba(0,0,0,0.01)]"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Links
@@ -148,7 +148,7 @@ export default function LinkDetails({ link, clicks, onBack, onUpdateLink, onDele
         {/* Link Attributes and Settings Editor (Colspan 2) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Main Card */}
-          <div className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-6">
+          <div className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-8 shadow-[0_4px_24px_rgba(0,0,0,0.01)] space-y-6">
             <div>
               <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
                 <Sparkles className="h-3.5 w-3.5" />
@@ -317,7 +317,7 @@ export default function LinkDetails({ link, clicks, onBack, onUpdateLink, onDele
           </div>
 
           {/* Single Link Charts & Click distributions */}
-          <div className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-8 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-6">
+          <div className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-8 shadow-[0_4px_24px_rgba(0,0,0,0.01)] space-y-6">
             <h3 className="text-lg font-bold text-heading font-display">Referral Channels</h3>
             
             <div className="space-y-3.5">
@@ -350,7 +350,7 @@ export default function LinkDetails({ link, clicks, onBack, onUpdateLink, onDele
         {/* QR Code and Key Performance Stats */}
         <div className="space-y-6">
           {/* Key Performance Indicators Card */}
-          <div className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+          <div className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.01)] space-y-4">
             <h3 className="text-sm font-bold text-heading font-display uppercase tracking-wider text-muted-text">Audited Metrics</h3>
             
             <div className="grid grid-cols-2 gap-4">
@@ -366,7 +366,7 @@ export default function LinkDetails({ link, clicks, onBack, onUpdateLink, onDele
           </div>
 
           {/* Dynamic Interactive QR Code */}
-          <div className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-5 text-center">
+          <div className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.01)] space-y-5 text-center">
             <div>
               <h3 className="text-base font-bold text-heading font-display">Dynamic QR Code</h3>
               <p className="text-xs text-secondary-text">Customize color schemes and download high-resolution vectors.</p>

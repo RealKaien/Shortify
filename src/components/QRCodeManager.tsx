@@ -168,7 +168,7 @@ export default function QRCodeManager({ links, onSelectLink }: QRCodeManagerProp
   return (
     <div id="qr-manager-panel" className="space-y-6">
       {/* Upper Selector Dashboard Row */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-[24px] border border-[rgba(255,255,255,0.65)] shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/40 backdrop-blur-md p-5 rounded-[24px] border border-white/50 shadow-[0_4px_24px_rgba(0,0,0,0.01)]">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-primary/10 text-primary rounded-[14px]">
             <QrCode className="h-5 w-5" />
@@ -261,7 +261,7 @@ export default function QRCodeManager({ links, onSelectLink }: QRCodeManagerProp
                   <motion.div
                     key={link.id}
                     layout
-                    className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.01)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.04)] transition-all flex flex-col justify-between space-y-4"
+                    className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-5 shadow-[0_4px_24px_rgba(0,0,0,0.01)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.02)] transition-all flex flex-col justify-between space-y-4"
                   >
                     <div>
                       <span className="text-[10px] font-mono font-bold text-primary uppercase block">/{link.alias || link.shortCode}</span>
@@ -373,7 +373,7 @@ export default function QRCodeManager({ links, onSelectLink }: QRCodeManagerProp
             </div>
           ) : (
             /* List Layout Mode */
-            <div className="bg-white rounded-[28px] border border-gray-100 overflow-hidden shadow-sm">
+            <div className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 overflow-hidden shadow-[0_4px_24px_rgba(0,0,0,0.01)]">
               <table className="w-full text-left text-xs">
                 <thead className="bg-gray-50 text-secondary-text font-bold uppercase border-b border-gray-100 text-[10px]">
                   <tr>
@@ -502,7 +502,7 @@ export default function QRCodeManager({ links, onSelectLink }: QRCodeManagerProp
         /* Custom QR Code Creator Studio Section */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Creator form (Left 5 Columns) */}
-          <div className="lg:col-span-5 bg-white p-6 rounded-[24px] border border-gray-100 space-y-6 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+          <div className="lg:col-span-5 bg-white/40 backdrop-blur-md p-6 rounded-[24px] border border-white/50 space-y-6 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
             <div>
               <h3 className="text-base font-bold text-heading font-display">Generate New Custom QR</h3>
               <p className="text-xs text-secondary-text mt-0.5">Input any external URL, email, phone number, or simple text string.</p>
@@ -585,7 +585,7 @@ export default function QRCodeManager({ links, onSelectLink }: QRCodeManagerProp
             </div>
 
             {customQrs.length === 0 ? (
-              <div className="bg-white rounded-[24px] border border-gray-100 p-12 text-center">
+              <div className="bg-white/40 backdrop-blur-md rounded-[24px] border border-white/50 p-12 text-center">
                 <QrCode className="h-8 w-8 text-muted-text mx-auto mb-3" />
                 <h4 className="text-xs font-bold text-heading">Inventory is empty</h4>
                 <p className="text-[11px] text-secondary-text mt-0.5">Use the generator on the left to bootstrap custom print assets.</p>

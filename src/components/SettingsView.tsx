@@ -130,12 +130,13 @@ export default function SettingsView({
                 </div>
 
                 {isTrialMode && (
-                  <div className="p-5 bg-amber-50 rounded-[20px] border border-amber-100 space-y-3">
-                    <div className="flex items-center gap-2 text-xs font-bold text-amber-800">
-                      <Sparkles className="h-4 w-4 text-amber-500" />
-                      Guest Trial Constraints Active
+                  <div className="p-5 bg-white rounded-[24px] border border-[#e8e8ed] shadow-sm space-y-3 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-[#0071e3]" />
+                    <div className="flex items-center gap-2 text-xs font-semibold text-[#1d1d1f]">
+                      <Sparkles className="h-4 w-4 text-[#0071e3]" />
+                      Guest Trial Settings Active
                     </div>
-                    <p className="text-[11px] text-amber-700 leading-relaxed">
+                    <p className="text-[11px] text-[#86868b] leading-relaxed">
                       You are utilizing Shortify as a trial guest. You are limited to creating a maximum of 
                       <strong> 3 redirects</strong> and temporary configurations. 
                       Upgrade to a fully-registered free account to unlock unlimited high-speed dynamic routes!
@@ -143,7 +144,7 @@ export default function SettingsView({
                     <button
                       type="button"
                       onClick={onUpgrade}
-                      className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer"
+                      className="bg-[#1d1d1f] hover:bg-[#2d2d2f] text-white text-xs font-medium px-4 py-2 rounded-full transition-all cursor-pointer shadow-sm"
                     >
                       Register Free Account Now
                     </button>

@@ -168,7 +168,7 @@ export default function CreateLinkModal({
           initial={{ scale: 0.95, opacity: 0, y: 15 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 15 }}
-          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ type: 'spring', damping: 26, stiffness: 280 }}
           className="relative w-full max-w-lg overflow-hidden rounded-[28px] border border-[rgba(255,255,255,0.7)] bg-white p-8 shadow-[0_20px_50px_rgba(0,0,0,0.12)] z-10 max-h-[90vh] flex flex-col"
         >
           {/* Header */}
@@ -188,7 +188,7 @@ export default function CreateLinkModal({
           {/* Form Content / Limit reached check */}
           {isLimitReached ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-4 space-y-6">
-              <div className="p-4 bg-amber-50 text-amber-600 rounded-[24px] border border-amber-100 flex items-center justify-center">
+              <div className="p-4 bg-slate-50 text-slate-800 rounded-[24px] border border-slate-200 flex items-center justify-center">
                 <ShieldAlert className="h-10 w-10" />
               </div>
               <div className="space-y-2">

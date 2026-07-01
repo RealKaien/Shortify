@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, HTMLMotionProps } from 'motion/react';
 import { 
   LayoutDashboard, Link2, BarChart2, QrCode, Terminal, Settings, 
   Search, Filter, Plus, ShieldAlert, Sparkles, 
   ChevronRight, ArrowUpRight, Copy, Check, Eye, Trash2, LogOut, Info, Star, Menu, X,
-  ChevronLeft, Share2, Calendar, Lock, Unlock, Globe
+  ChevronLeft, Share2, Calendar, Lock, Unlock, Globe, Grid, List
 } from 'lucide-react';
 import { Link, ClickEvent, ApiKey } from '../types';
 import { toast } from '../lib/toast';
@@ -32,13 +32,13 @@ function LinkCardCarousel({ links, onCopy, onInspect, onDelete, copiedLinkId }: 
   };
 
   return (
-    <div className="relative w-full py-12 px-4 flex flex-col items-center justify-center overflow-hidden bg-gradient-to-tr from-primary/5 via-slate-50/50 to-transparent rounded-[36px] border border-white/60 shadow-[0_16px_40px_rgba(15,23,42,0.03)] mb-8">
+    <div className="relative w-full py-12 px-4 flex flex-col items-center justify-center overflow-hidden bg-white rounded-[32px] border border-[#e8e8ed] shadow-[0_8px_32px_rgba(0,0,0,0.02)] mb-8">
       {/* Abstract premium branding labels mirroring the video frame background details */}
-      <div className="absolute top-4 left-6 flex items-center gap-1.5 opacity-40">
+      <div className="absolute top-4 left-6 flex items-center gap-1.5 opacity-60">
         <Sparkles className="h-3 w-3 text-primary" />
-        <span className="text-[9px] uppercase font-mono tracking-widest font-black text-secondary-text">Redirect Deck Mode</span>
+        <span className="text-[9px] uppercase font-mono tracking-widest font-bold text-secondary-text">Redirect Deck Mode</span>
       </div>
-      <div className="absolute top-4 right-6 text-[9px] font-mono font-black uppercase text-primary/60 bg-primary/10 px-2 py-0.5 rounded-full">
+      <div className="absolute top-4 right-6 text-[9px] font-mono font-bold uppercase text-[#1d1d1f] bg-[#f5f5f7] px-2.5 py-1 rounded-full">
         {activeIndex + 1} / {links.length} endpoints
       </div>
 
@@ -103,8 +103,8 @@ function LinkCardCarousel({ links, onCopy, onInspect, onDelete, copiedLinkId }: 
                     </div>
                   </div>
 
-                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold flex items-center gap-1 ${
-                    link.isProtected ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-semibold flex items-center gap-1 ${
+                    link.isProtected ? 'bg-slate-100 text-slate-700 border border-[#e8e8ed]' : 'bg-emerald-50 text-emerald-600 border border-emerald-100/40'
                   }`}>
                     {link.isProtected ? <Lock className="h-2.5 w-2.5" /> : <Unlock className="h-2.5 w-2.5" />}
                     {link.isProtected ? 'Secured' : 'Public'}
@@ -245,6 +245,56 @@ interface DashboardProps {
 
 type SidebarTab = 'dashboard' | 'links' | 'analytics' | 'qrcodes' | 'api' | 'settings';
 
+interface AppleTiltCardProps extends HTMLMotionProps<'div'> {
+  maxTilt?: number;
+}
+
+function AppleTiltCard({ children, className = "", maxTilt = 8, style, ...props }: AppleTiltCardProps) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springConfig = { damping: 20, stiffness: 150 };
+  
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [maxTilt, -maxTilt]), springConfig);
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-maxTilt, maxTilt]), springConfig);
+  const scale = useSpring(1, springConfig);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const rect = el.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left - width / 2;
+    const mouseY = e.clientY - rect.top - height / 2;
+    x.set(mouseX / width);
+    y.set(mouseY / height);
+    scale.set(1.02);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+    scale.set(1);
+  };
+
+  return (
+    <motion.div
+      style={{
+        rotateX,
+        rotateY,
+        scale,
+        transformStyle: "preserve-3d",
+        ...style
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className={className}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
@@ -261,7 +311,7 @@ const itemVariants = {
     opacity: 1, 
     y: 0,
     transition: { 
-      type: 'spring',
+      type: 'spring' as const,
       stiffness: 260,
       damping: 20
     } 
@@ -326,7 +376,7 @@ function EmptyState({ onCreateClick }: EmptyStateProps) {
               y: [-15, -18, -15]
             }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute p-1.5 bg-yellow-400 text-white rounded-lg shadow-sm"
+            className="absolute p-1.5 bg-primary text-white rounded-lg shadow-sm"
           >
             <Sparkles className="h-3 w-3" />
           </motion.div>
@@ -432,6 +482,7 @@ export default function Dashboard({
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'protected' | 'expired'>('all');
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
+  const [linkLayoutMode, setLinkLayoutMode] = useState<'grid' | 'list'>('grid');
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -514,14 +565,18 @@ export default function Dashboard({
   };
 
   return (
-    <div id="saas-dashboard-container" className="flex h-screen bg-[#F8FAFC] overflow-hidden text-heading">
+    <div id="saas-dashboard-container" className="flex h-screen bg-[#f5f5f7] overflow-hidden text-[#1d1d1f] relative">
       
+      {/* Ambient background light leaks for Apple glassmorphism visual premium depth */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-gradient-to-br from-blue-300/15 via-sky-200/10 to-indigo-300/10 blur-[130px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-15%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-purple-200/15 via-rose-100/10 to-indigo-200/10 blur-[150px] pointer-events-none" />
+
       {/* SIDEBAR NAVIGATION PANEL (Hidden on Mobile) */}
-      <aside id="saas-sidebar" className="hidden lg:flex flex-col w-72 bg-white border-r border-gray-100 p-6 justify-between h-full">
+      <aside id="saas-sidebar" className="hidden lg:flex flex-col w-72 bg-white/40 backdrop-blur-md border-r border-white/50 p-6 justify-between h-full relative z-10">
         <div className="space-y-8">
           {/* Main Logo brand header */}
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-gradient-to-tr from-primary to-blue-500 rounded-2xl flex items-center justify-center text-white shadow-md shadow-blue-500/10">
+            <div className="h-10 w-10 bg-[#1d1d1f] rounded-2xl flex items-center justify-center text-white shadow-md">
               <Link2 className="h-5 w-5" />
             </div>
             <div>
@@ -531,33 +586,33 @@ export default function Dashboard({
           </div>
 
           {/* Quick Stats Sidebar pill */}
-          <div className="p-4 bg-gray-50/80 rounded-[20px] border border-gray-100 space-y-2">
-            <div className="flex items-center justify-between text-[11px] font-bold text-secondary-text">
-              <span className="flex items-center gap-1.5">
-                <Star className="h-3.5 w-3.5 text-amber-500" />
+          <div className="p-4 bg-[#f5f5f7] rounded-[20px] border border-[#e8e8ed] space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-medium text-secondary-text">
+              <span className="flex items-center gap-1.5 text-[#1d1d1f]">
+                <Star className="h-3.5 w-3.5 text-[#0071e3]" />
                 Current Tier
               </span>
-              <span className={isTrialMode ? 'text-amber-600' : 'text-primary'}>
+              <span className={isTrialMode ? 'text-slate-600 font-semibold' : 'text-primary font-semibold'}>
                 {isTrialMode ? 'Trial Guest' : 'Registered Pro'}
               </span>
             </div>
             {isTrialMode ? (
               <div className="space-y-1.5">
-                <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
-                  <div className="bg-amber-500 h-full transition-all duration-500" style={{ width: `${(links.length / 3) * 100}%` }}></div>
+                <div className="w-full bg-gray-200 h-1 rounded-full overflow-hidden">
+                  <div className="bg-[#1d1d1f] h-full transition-all duration-500" style={{ width: `${(links.length / 3) * 100}%` }}></div>
                 </div>
-                <span className="text-[10px] text-muted-text block leading-snug">
+                <span className="text-[10px] text-secondary-text block leading-snug">
                   Redirect Quota: <strong>{links.length}/3</strong>. Register to remove limit.
                 </span>
                 <button
                   onClick={onUpgrade}
-                  className="w-full text-center py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold rounded-lg transition-all cursor-pointer"
+                  className="w-full text-center py-1.5 bg-[#0071e3] hover:bg-[#0077ed] text-white text-[10px] font-medium rounded-full transition-all cursor-pointer"
                 >
-                  Register Free
+                  Upgrade Free
                 </button>
               </div>
             ) : (
-              <span className="text-[10px] text-muted-text block leading-snug">
+              <span className="text-[10px] text-secondary-text block leading-snug">
                 Congratulations! You have unlimited link creation and full access enabled.
               </span>
             )}
@@ -625,7 +680,7 @@ export default function Dashboard({
       </aside>
 
       {/* MAIN CONTENT WORKSPACE */}
-      <main id="main-dashboard-canvas" className="flex-1 p-6 lg:p-10 overflow-y-auto h-screen max-w-[100vw]">
+      <main id="main-dashboard-canvas" className="flex-1 p-6 lg:p-10 overflow-y-auto h-screen max-w-[100vw] relative z-10">
         
         {/* Top Mobile Bar (shows up when sidebar hidden) */}
         <div className="flex lg:hidden items-center justify-between pb-6 border-b border-gray-100 mb-6">
@@ -642,7 +697,7 @@ export default function Dashboard({
 
           <div className="flex items-center gap-2">
             {isTrialMode && (
-              <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-1 rounded-lg font-bold">
+              <span className="text-[10px] bg-[#1d1d1f] text-white px-2.5 py-1 rounded-full font-medium">
                 {links.length}/3 Links
               </span>
             )}
@@ -786,7 +841,7 @@ export default function Dashboard({
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.25 }}
+                transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
               >
                 {/* PAGE 1: OVERVIEW DASHBOARD */}
                 {activeTab === 'dashboard' && (
@@ -794,41 +849,51 @@ export default function Dashboard({
                     {/* Welcome banner */}
                     <div className="flex items-center justify-between">
                       <div>
-                        <h1 className="text-2xl font-black text-heading font-display">SaaS Control Center</h1>
-                        <p className="text-xs text-secondary-text mt-0.5">Welcome back, {currentUserName}. Here is your redirect performance snapshot today.</p>
+                        <h1 className="text-3xl font-semibold tracking-tight text-heading font-display">SaaS Control Center</h1>
+                        <p className="text-xs text-[#86868b] mt-0.5">Welcome back, {currentUserName}. Here is your redirect performance snapshot today.</p>
                       </div>
                       
                       {/* Interactive Trigger in view */}
                       <button
                         onClick={() => setIsCreateModalOpen(true)}
-                        className="hidden sm:flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold px-4 py-2.5 rounded-[14px] shadow-sm transition-all cursor-pointer"
+                        className="hidden sm:flex items-center gap-1.5 bg-[#1d1d1f] hover:bg-[#2d2d2f] text-white text-xs font-medium px-4 py-2 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-all cursor-pointer"
                       >
                         <Plus className="h-4 w-4" />
                         Shorten a Link
                       </button>
                     </div>
 
-                    {/* Numeric Cards Grid */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Numeric Cards Grid with Staggered Entrance Animation */}
+                    <motion.div 
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="show"
+                      className="grid grid-cols-2 lg:grid-cols-4 gap-6"
+                    >
                       {[
                         { label: 'Redirection Clicks', value: stats.totalClicks, change: '+12.5%', type: 'clicks' },
                         { label: 'Active Short Links', value: stats.activeLinksCount, change: 'Stable', type: 'links' },
                         { label: 'Dynamic QR Codes', value: stats.qrCount, change: '100% active', type: 'qrs' },
                         { label: 'Account Authority', value: isTrialMode ? 'Guest Trial' : 'Registered Member', change: isTrialMode ? 'Limit: 3 links' : 'Unlimited', type: 'authority' }
                       ].map((card, i) => (
-                        <div key={i} className="bg-white rounded-[24px] border border-[rgba(255,255,255,0.65)] p-5 shadow-[0_4px_24px_rgba(0,0,0,0.01)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.03)] transition-all">
-                          <span className="text-[10px] font-bold text-secondary-text uppercase tracking-wider">{card.label}</span>
+                        <AppleTiltCard 
+                          variants={itemVariants}
+                          key={i} 
+                          maxTilt={4}
+                          className="bg-white/40 backdrop-blur-md rounded-[24px] border border-white/50 p-5 shadow-[0_4px_16px_rgba(0,0,0,0.01)] hover:border-[#1d1d1f] hover:shadow-[0_8px_24px_rgba(0,0,0,0.02)] transition-all"
+                        >
+                          <span className="text-[10px] font-semibold text-[#86868b] uppercase tracking-wider">{card.label}</span>
                           <div className="flex items-baseline justify-between mt-2">
-                            <span className="text-xl lg:text-2xl font-black text-heading font-display leading-tight truncate">{card.value}</span>
-                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                              card.type === 'authority' && isTrialMode ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
+                            <span className="text-2xl lg:text-3xl font-semibold tracking-tight text-[#1d1d1f] leading-tight truncate">{card.value}</span>
+                            <span className={`text-[9px] font-medium px-2 py-0.5 rounded-full ${
+                               card.type === 'authority' && isTrialMode ? 'bg-slate-100 text-slate-700' : 'bg-[#e3f2fd] text-[#0071e3]'
                             }`}>
                               {card.change}
                             </span>
                           </div>
-                        </div>
+                        </AppleTiltCard>
                       ))}
-                    </div>
+                    </motion.div>
 
                     {/* Latest Links Catalog Quick Table or Empty State */}
                     {links.length === 0 ? (
@@ -844,7 +909,7 @@ export default function Dashboard({
                           copiedLinkId={copiedLinkId}
                         />
 
-                        <div className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-4">
+                        <div className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.01)] space-y-4">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                           <div>
                             <h3 className="text-lg font-bold text-heading font-display">Redirect Index Table</h3>
@@ -1011,98 +1076,248 @@ export default function Dashboard({
                       <EmptyState onCreateClick={() => setIsCreateModalOpen(true)} />
                     ) : (
                       <>
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-[24px] border border-[rgba(255,255,255,0.65)] shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
-                          <div>
-                            <h2 className="text-xl font-bold text-heading font-display">Redirect Catalog</h2>
-                            <p className="text-xs text-secondary-text">Filter and manage active endpoints, parameters, and redirects.</p>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/40 backdrop-blur-md p-5 rounded-[24px] border border-white/50 shadow-[0_4px_24px_rgba(0,0,0,0.01)]">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-primary/10 text-primary rounded-[14px]">
+                              <Link2 className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <h2 className="text-xl font-bold text-heading font-display">Redirect Catalog</h2>
+                              <p className="text-xs text-secondary-text">Filter and manage active endpoints, parameters, and redirects.</p>
+                            </div>
                           </div>
 
-                          {/* Filters */}
-                          <div className="flex flex-wrap gap-2">
-                            {[
-                              { id: 'all', label: 'All links' },
-                              { id: 'protected', label: 'Password secured' },
-                              { id: 'expired', label: 'Expired links' }
-                            ].map((filter) => (
+                          {/* Filters and Layout Mode */}
+                          <div className="flex flex-wrap items-center gap-3">
+                            <div className="flex flex-wrap gap-2">
+                              {[
+                                { id: 'all', label: 'All links' },
+                                { id: 'protected', label: 'Password secured' },
+                                { id: 'expired', label: 'Expired links' }
+                              ].map((filter) => (
+                                <button
+                                  key={filter.id}
+                                  onClick={() => {
+                                    setFilterType(filter.id as any);
+                                    setCurrentPage(1);
+                                  }}
+                                  className={`px-3.5 py-1.5 rounded-[12px] text-xs font-semibold transition-all cursor-pointer ${
+                                    filterType === filter.id 
+                                      ? 'bg-primary text-white shadow-sm' 
+                                      : 'bg-gray-100 text-secondary-text hover:text-heading'
+                                  }`}
+                                >
+                                  {filter.label}
+                                </button>
+                              ))}
+                            </div>
+
+                            <div className="flex border border-gray-200 rounded-[14px] p-0.5 bg-gray-50 shrink-0">
                               <button
-                                key={filter.id}
-                                onClick={() => {
-                                  setFilterType(filter.id as any);
-                                  setCurrentPage(1);
-                                }}
-                                className={`px-3.5 py-1.5 rounded-[12px] text-xs font-semibold transition-all cursor-pointer ${
-                                  filterType === filter.id 
-                                    ? 'bg-primary text-white shadow-sm' 
-                                    : 'bg-gray-100 text-secondary-text hover:text-heading'
-                                }`}
+                                onClick={() => setLinkLayoutMode('grid')}
+                                className={`p-1.5 rounded-[10px] transition-all cursor-pointer ${linkLayoutMode === 'grid' ? 'bg-white text-primary shadow-sm' : 'text-secondary-text'}`}
+                                title="Grid (Card View)"
                               >
-                                {filter.label}
+                                <Grid className="h-4 w-4" />
                               </button>
-                            ))}
+                              <button
+                                onClick={() => setLinkLayoutMode('list')}
+                                className={`p-1.5 rounded-[10px] transition-all cursor-pointer ${linkLayoutMode === 'list' ? 'bg-white text-primary shadow-sm' : 'text-secondary-text'}`}
+                                title="List (Table View)"
+                              >
+                                <List className="h-4 w-4" />
+                              </button>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Renders main overview table with all items */}
-                        <div className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
-                          <div className="overflow-x-auto rounded-[18px]">
-                            <table className="w-full text-left text-xs">
-                              <thead className="bg-gray-50 text-secondary-text text-[10px] uppercase font-bold border-b border-gray-100">
-                                <tr>
-                                  <th className="px-6 py-4">Endpoint</th>
-                                  <th className="px-6 py-4">Original Destination URL</th>
-                                  <th className="px-6 py-4 text-center">Clicks</th>
-                                  <th className="px-6 py-4 text-center">Status</th>
-                                  <th className="px-6 py-4 text-right">Inspection Action</th>
-                                </tr>
-                              </thead>
-                              <motion.tbody 
-                                key={`catalog-${searchQuery}-${filterType}-${processedLinks.length}`}
-                                variants={containerVariants}
-                                initial="hidden"
-                                animate="show"
-                                className="divide-y divide-gray-100 font-semibold text-heading"
-                              >
-                                {processedLinks.map((link) => {
-                                  const isExpired = link.expiryDate ? new Date(link.expiryDate) < new Date() : false;
-                                  return (
-                                    <motion.tr 
-                                      variants={itemVariants}
-                                      key={link.id} 
-                                      className="hover:bg-gray-50/50"
-                                    >
-                                      <td className="px-6 py-4">
-                                        <span className="font-bold text-primary font-mono">/{link.alias || link.shortCode}</span>
-                                        <span className="text-[10px] text-muted-text block mt-0.5">{link.title || 'SaaS Redirection'}</span>
-                                      </td>
-                                      <td className="px-6 py-4 max-w-[200px] truncate font-mono text-[11px] text-secondary-text">
-                                        {link.longUrl}
-                                      </td>
-                                      <td className="px-6 py-4 text-center font-mono">
-                                        {link.clicks}
-                                      </td>
-                                      <td className="px-6 py-4 text-center">
-                                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold ${
-                                          isExpired ? 'bg-red-50 text-danger' : 'bg-emerald-50 text-emerald-600'
-                                        }`}>
-                                          {isExpired ? 'Expired' : 'Active Routing'}
+                        {linkLayoutMode === 'grid' ? (
+                          /* Renders visual link cards with stagger-loaded transitions */
+                          <motion.div 
+                            key={`catalog-grid-${searchQuery}-${filterType}-${processedLinks.length}`}
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="show"
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                          >
+                            {processedLinks.map((link) => {
+                              const isExpired = link.expiryDate ? new Date(link.expiryDate) < new Date() : false;
+                              const isCopied = copiedLinkId === link.id;
+                              return (
+                                <AppleTiltCard 
+                                  variants={itemVariants}
+                                  maxTilt={10}
+                                  key={link.id} 
+                                  className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-5.5 shadow-[0_4px_24px_rgba(0,0,0,0.01)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.03)] transition-all flex flex-col justify-between h-[270px] relative overflow-hidden group"
+                                >
+                                  {/* Decorative Top Accent Glow line */}
+                                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/30 via-primary to-blue-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                                  {/* Header Section */}
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2.5">
+                                      <div className="p-2.5 rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform duration-300">
+                                        <Link2 className="h-4.5 w-4.5" />
+                                      </div>
+                                      <div className="min-w-0">
+                                        <h4 className="text-[13px] font-black tracking-tight text-heading truncate max-w-[140px] font-display">
+                                          {link.title || 'SaaS Redirection'}
+                                        </h4>
+                                        <span className="text-[9px] text-muted-text block mt-0.5 font-bold font-sans">
+                                          {new Date(link.createdAt).toLocaleDateString()}
                                         </span>
-                                      </td>
-                                      <td className="px-6 py-4 text-right">
-                                        <button
-                                          onClick={() => setSelectedLinkDetails(link)}
-                                          className="inline-flex items-center gap-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-[10px] text-secondary-text font-bold cursor-pointer transition-all text-[11px]"
-                                        >
-                                          Inspect Report
-                                          <ArrowUpRight className="h-3 w-3 text-primary" />
-                                        </button>
-                                      </td>
-                                    </motion.tr>
-                                  );
-                                })}
-                              </motion.tbody>
-                            </table>
+                                      </div>
+                                    </div>
+
+                                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-semibold flex items-center gap-1 ${
+                                      link.isProtected ? 'bg-slate-100 text-slate-700 border border-[#e8e8ed]' : 'bg-emerald-50 text-emerald-600 border border-emerald-100/40'
+                                    }`}>
+                                      {link.isProtected ? <Lock className="h-2.5 w-2.5" /> : <Unlock className="h-2.5 w-2.5" />}
+                                      {link.isProtected ? 'Secured' : 'Public'}
+                                    </span>
+                                  </div>
+
+                                  {/* Original Long Destination wrapper */}
+                                  <div className="my-3 space-y-2">
+                                    <div className="bg-gray-50/80 rounded-xl p-2.5 border border-gray-100/60 font-mono text-[10px] leading-tight text-secondary-text truncate max-w-full relative">
+                                      <span className="text-[8px] uppercase font-mono tracking-widest block text-muted-text mb-0.5">Original URL</span>
+                                      {link.longUrl}
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-[11px] font-semibold px-0.5">
+                                      <span className="text-secondary-text">Short Code:</span>
+                                      <span className="font-bold text-primary font-mono bg-primary/5 px-2 py-0.5 rounded-md">/{link.alias || link.shortCode}</span>
+                                    </div>
+                                  </div>
+
+                                  {/* Footer row with status metrics & actions */}
+                                  <div className="pt-3.5 border-t border-gray-100 flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-1 font-mono font-black text-heading text-sm">
+                                      <Globe className="h-3.5 w-3.5 text-primary shrink-0 mr-0.5" />
+                                      {link.clicks} <span className="text-[9px] text-secondary-text font-sans font-bold">clicks</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5">
+                                      <motion.button
+                                        whileTap={{ scale: 0.85 }}
+                                        whileHover={{ scale: 1.1 }}
+                                        onClick={() => handleCopyLink(link)}
+                                        className="p-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-secondary-text cursor-pointer relative overflow-hidden flex items-center justify-center h-8 w-8 border border-gray-200/50"
+                                        title="Copy link"
+                                      >
+                                        <AnimatePresence mode="wait" initial={false}>
+                                          {isCopied ? (
+                                            <motion.div
+                                              key="copied"
+                                              initial={{ scale: 0.5, rotate: -15, opacity: 0 }}
+                                              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                                              exit={{ scale: 0.5, rotate: 15, opacity: 0 }}
+                                              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                                            >
+                                              <Check className="h-3.5 w-3.5 text-emerald-500 stroke-[2.5]" />
+                                            </motion.div>
+                                          ) : (
+                                            <motion.div
+                                              key="copy"
+                                              initial={{ scale: 0.5, opacity: 0 }}
+                                              animate={{ scale: 1, opacity: 1 }}
+                                              exit={{ scale: 0.5, opacity: 0 }}
+                                              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                                            >
+                                              <Copy className="h-3.5 w-3.5" />
+                                            </motion.div>
+                                          )}
+                                        </AnimatePresence>
+                                      </motion.button>
+
+                                      <button
+                                        onClick={() => setSelectedLinkDetails(link)}
+                                        className="p-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-secondary-text cursor-pointer border border-gray-200/50 h-8 w-8 flex items-center justify-center"
+                                        title="Inspect detailed metrics"
+                                      >
+                                        <Eye className="h-3.5 w-3.5 text-primary" />
+                                      </button>
+
+                                      <button
+                                        onClick={() => {
+                                          if (confirm('Delete this shortened endpoint?')) {
+                                            onDeleteLink(link.id);
+                                          }
+                                        }}
+                                        className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-danger cursor-pointer border border-red-100/50 h-8 w-8 flex items-center justify-center"
+                                        title="Delete link"
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </AppleTiltCard>
+                              );
+                            })}
+                          </motion.div>
+                        ) : (
+                          /* Renders main overview table with all items */
+                          <div className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.01)]">
+                            <div className="overflow-x-auto rounded-[18px]">
+                              <table className="w-full text-left text-xs">
+                                <thead className="bg-gray-50 text-secondary-text text-[10px] uppercase font-bold border-b border-gray-100">
+                                  <tr>
+                                    <th className="px-6 py-4">Endpoint</th>
+                                    <th className="px-6 py-4">Original Destination URL</th>
+                                    <th className="px-6 py-4 text-center">Clicks</th>
+                                    <th className="px-6 py-4 text-center">Status</th>
+                                    <th className="px-6 py-4 text-right">Inspection Action</th>
+                                  </tr>
+                                </thead>
+                                <motion.tbody 
+                                  key={`catalog-list-${searchQuery}-${filterType}-${processedLinks.length}`}
+                                  variants={containerVariants}
+                                  initial="hidden"
+                                  animate="show"
+                                  className="divide-y divide-gray-100 font-semibold text-heading"
+                                >
+                                  {processedLinks.map((link) => {
+                                    const isExpired = link.expiryDate ? new Date(link.expiryDate) < new Date() : false;
+                                    return (
+                                      <motion.tr 
+                                        variants={itemVariants}
+                                        key={link.id} 
+                                        className="hover:bg-gray-50/50"
+                                      >
+                                        <td className="px-6 py-4">
+                                          <span className="font-bold text-primary font-mono">/{link.alias || link.shortCode}</span>
+                                          <span className="text-[10px] text-muted-text block mt-0.5">{link.title || 'SaaS Redirection'}</span>
+                                        </td>
+                                        <td className="px-6 py-4 max-w-[200px] truncate font-mono text-[11px] text-secondary-text">
+                                          {link.longUrl}
+                                        </td>
+                                        <td className="px-6 py-4 text-center font-mono">
+                                          {link.clicks}
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                          <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold ${
+                                            isExpired ? 'bg-red-50 text-danger' : 'bg-emerald-50 text-emerald-600'
+                                          }`}>
+                                            {isExpired ? 'Expired' : 'Active Routing'}
+                                          </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                          <button
+                                            onClick={() => setSelectedLinkDetails(link)}
+                                            className="inline-flex items-center gap-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-[10px] text-secondary-text font-bold cursor-pointer transition-all text-[11px]"
+                                          >
+                                            Inspect Report
+                                            <ArrowUpRight className="h-3 w-3 text-primary" />
+                                          </button>
+                                        </td>
+                                      </motion.tr>
+                                    );
+                                  })}
+                                </motion.tbody>
+                              </table>
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </>
                     )}
                   </div>
@@ -1142,7 +1357,7 @@ export default function Dashboard({
       </main>
 
       {/* FLOATING MOBILE BOTTOM NAVIGATION (iOS / Redesign Video Style) */}
-      <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-sm bg-[#1A1226]/95 backdrop-blur-md rounded-[32px] border border-white/10 px-5 py-2.5 flex items-center justify-between shadow-[0_24px_48px_rgba(31,25,47,0.4)]">
+      <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-sm bg-white/80 backdrop-blur-xl rounded-full border border-slate-200/50 px-5 py-2 flex items-center justify-between shadow-[0_12px_36px_rgba(0,0,0,0.06)]">
         {[
           { id: 'dashboard', label: 'Console', icon: LayoutDashboard },
           { id: 'links', label: 'Links', icon: Link2 },
@@ -1156,28 +1371,28 @@ export default function Dashboard({
                 setActiveTab(tab.id as any);
                 setSelectedLinkDetails(null);
               }}
-              className={`flex flex-col items-center gap-1.5 py-1 px-3.5 rounded-2xl transition-all cursor-pointer ${
-                isSelected ? 'text-[#EAB308]' : 'text-gray-400 hover:text-white'
+              className={`flex flex-col items-center gap-1 py-1 px-3.5 rounded-2xl transition-all cursor-pointer ${
+                isSelected ? 'text-[#0071e3]' : 'text-[#86868b] hover:text-[#1d1d1f]'
               }`}
             >
               <TabIcon className={`h-5 w-5 ${isSelected ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
-              <span className="text-[9px] font-bold font-sans tracking-wide">{tab.label}</span>
+              <span className="text-[9px] font-medium font-sans tracking-wide">{tab.label}</span>
             </button>
           );
         })}
 
-        {/* Central Action Plus Button (Pulsing Amber/Gold background with Indented Ring structure) */}
-        <div className="relative -top-5">
+        {/* Central Action Plus Button (Minimalist Premium Dark Apple design) */}
+        <div className="relative -top-4">
           <motion.button
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.92 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setIsCreateModalOpen(true)}
-            className="w-14 h-14 bg-gradient-to-tr from-[#EAB308] to-[#FACC15] text-[#1E152C] rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(234,179,8,0.45)] cursor-pointer relative z-50 border-[5px] border-[#1A1226]"
+            className="w-12 h-12 bg-[#1d1d1f] hover:bg-[#2d2d2f] text-white rounded-full flex items-center justify-center shadow-[0_4px_16px_rgba(0,0,0,0.15)] cursor-pointer relative z-50 border-[4px] border-white"
           >
-            <Plus className="h-6 w-6 stroke-[3]" />
+            <Plus className="h-5 w-5 stroke-[2.5]" />
           </motion.button>
-          {/* External golden pulsing signal ring */}
-          <span className="absolute -inset-1 rounded-full bg-[#EAB308]/20 animate-ping pointer-events-none -z-10"></span>
+          {/* External soft pulse indicator */}
+          <span className="absolute -inset-1 rounded-full bg-slate-200/40 animate-ping pointer-events-none -z-10"></span>
         </div>
 
         {[
@@ -1193,12 +1408,12 @@ export default function Dashboard({
                 setActiveTab(tab.id as any);
                 setSelectedLinkDetails(null);
               }}
-              className={`flex flex-col items-center gap-1.5 py-1 px-3.5 rounded-2xl transition-all cursor-pointer ${
-                isSelected ? 'text-[#EAB308]' : 'text-gray-400 hover:text-white'
+              className={`flex flex-col items-center gap-1 py-1 px-3.5 rounded-2xl transition-all cursor-pointer ${
+                isSelected ? 'text-[#0071e3]' : 'text-[#86868b] hover:text-[#1d1d1f]'
               }`}
             >
               <TabIcon className={`h-5 w-5 ${isSelected ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
-              <span className="text-[9px] font-bold font-sans tracking-wide">{tab.label}</span>
+              <span className="text-[9px] font-medium font-sans tracking-wide">{tab.label}</span>
             </button>
           );
         })}

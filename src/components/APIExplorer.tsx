@@ -103,7 +103,7 @@ print(response.json())`
   return (
     <div id="developer-api-panel" className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between bg-white p-5 rounded-[24px] border border-[rgba(255,255,255,0.65)] shadow-[0_4px_24px_rgba(0,0,0,0.02)]">
+      <div className="flex items-center justify-between bg-white/40 backdrop-blur-md p-5 rounded-[24px] border border-white/50 shadow-[0_4px_24px_rgba(0,0,0,0.01)]">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-primary/10 text-primary rounded-[14px]">
             <Terminal className="h-5 w-5" />
@@ -121,7 +121,7 @@ print(response.json())`
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left: Interactive API Playground */}
-        <div className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] space-y-5 flex flex-col justify-between">
+        <div className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.01)] space-y-5 flex flex-col justify-between">
           <div>
             <span className="text-xs font-bold text-primary uppercase tracking-wider">Developer Sandbox</span>
             <h3 className="text-lg font-bold text-heading font-display mt-0.5">API Request Sandbox</h3>
@@ -208,7 +208,7 @@ print(response.json())`
         </div>
 
         {/* Right: Code Snippets & SDK Guides */}
-        <div className="bg-white rounded-[28px] border border-[rgba(255,255,255,0.65)] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.02)] flex flex-col justify-between space-y-4">
+        <div className="bg-white/40 backdrop-blur-md rounded-[28px] border border-white/50 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.01)] flex flex-col justify-between space-y-4">
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-primary uppercase tracking-wider">Integration Specs</span>

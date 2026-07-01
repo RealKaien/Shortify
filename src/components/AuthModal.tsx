@@ -74,11 +74,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="bg-white rounded-[28px] border border-gray-100 shadow-2xl max-w-md w-full overflow-hidden relative"
+        transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+        className="bg-white rounded-[28px] border border-[#e8e8ed] shadow-2xl max-w-md w-full overflow-hidden relative"
       >
         {/* Header decoration */}
-        <div className="h-2 bg-gradient-to-r from-[#2563EB] to-[#3B82F6]" />
+        <div className="h-1 bg-[#1d1d1f]" />
 
         {/* Close Button */}
         <button
